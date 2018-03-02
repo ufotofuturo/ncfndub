@@ -73,16 +73,7 @@ sub play_round {
 		$team1 = @teams[$nextround];
 		$team2 = @teams[$nextround+1];
 		my $winner = play_game($team1,$team2,\%ratings,$weights);
-
-		die;
-
-		if ($ratings{$team1} < $ratings{$team2}){
-			print $team1 . "\n";
-			push @result, $team1;
-		} else {
-			print $team2 . "\n";
-			push @result, $team2;
-		}
+		push @result, $winner;
 		$nextround = $nextround + 2;
 	}
 	return @result;
@@ -111,6 +102,7 @@ sub stat_reader {
 	my @teams= @{$_[0]};
 	my %result;
 
+	#there should be as many files here as there are weights per line in weights.dat
 	%result = grab_rankings(\%result,$workingdir . $season . '/rpi.dat');
 	%result = grab_rankings(\%result,$workingdir . $season . '/defensiveefficiency.dat');
 	%result = grab_rankings(\%result,$workingdir . $season . '/offensiveefficiency.dat');
@@ -152,16 +144,56 @@ sub play_game {
 	my $totalteams = scalar(keys %ratings);
 
 	print "Game: " . $team1 . " vs. " . $team2 . "\n";
-	print $team1 . " Ratings: " . $ratings{$team1} . "\n";
-	print $team2 . " Ratings: " . $ratings{$team2} . "\n";
-	print "Weights: " . $weights . "\n";
+	#print $team1 . " Ratings: " . $ratings{$team1} . "\n";
+	#print $team2 . " Ratings: " . $ratings{$team2} . "\n";
+	#print "Weights: " . $weights . "\n";
 
 	my @team1adjusted;
 	my @team2adjusted;
 
+	my @weightsarray = split /,/, $weights;
+	my @rawteam1 = split /:/, $ratings{$team1};
+	my @rawteam2 = split /:/, $ratings{$team2};
 
+	my $currentweight = 0;
 
+	my $rank1;
+	my $rank2;
 
-	print "Winner: " . $team1;
-	return $team1;
+	foreach my $column (@weightsarray){
+		#pull team's rank for current stat compared to rest of field
+		$rank1 = $rawteam1[$currentweight];
+		$rank2 = $rawteam2[$currentweight];
+
+		#adjust this rank to a percentage - 1st place = 100%
+		$rank1 = (($totalteams + 1) - $rank1)/$totalteams;
+		$rank2 = (($totalteams + 1) - $rank2)/$totalteams;
+
+		#make adjustments with weight to find adjusted percent strength of each metric
+		push @team1adjusted, ($rank1 * (@weightsarray[$currentweight] / 100));
+		push @team2adjusted, ($rank2 * (@weightsarray[$currentweight] / 100));
+
+		$currentweight = $currentweight + 1;
+		#push @team1adjusted, ;
+		#push @team2adjusted, ;
+	}
+	#combine percentage strengths to find final strength for each time
+	foreach my $finalval1 (@team1adjusted){
+		$team1strength = $team1strength + $finalval1;
+	}
+	foreach my $finalval2 (@team2adjusted){
+		$team2strength = $team2strength + $finalval2;
+	}
+
+	#print $team1 . " Strength: " . $team1strength . "\n";
+	#print $team2 . " Strength: " . $team2strength . "\n";
+
+	if ($team1strength > $team2strength){
+		print "Winner: " . $team1 . "\n";
+		return $team1;
+	} else {
+		print "Winner: " . $team2 . "\n";
+		return $team2;
+	}
+	
 }
