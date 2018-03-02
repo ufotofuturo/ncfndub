@@ -6,7 +6,7 @@ use strict;
 
 my $workingdir = $ARGV[0];
 my $season = $ARGV[1];
-my $debug = 1;
+my $debug = 0;
 
 #read the season's actual outcome into an array
 my @actual_outcome = actual_outcome();
@@ -29,26 +29,32 @@ my @winner_actual;
 
 my $currentgame = 0;
 while ($currentgame < 32){
+	chomp($actual_outcome[$currentgame]);
 	push @roundof32_actual, $actual_outcome[$currentgame];
 	$currentgame = $currentgame+1;
 }
 while ($currentgame < 48){
+	chomp($actual_outcome[$currentgame]);
 	push @sweet16_actual, $actual_outcome[$currentgame];
 	$currentgame = $currentgame+1;
 }
 while ($currentgame < 56){
+	chomp($actual_outcome[$currentgame]);
 	push @elite8_actual, $actual_outcome[$currentgame];
 	$currentgame = $currentgame+1;
 }
 while ($currentgame < 60){
+	chomp($actual_outcome[$currentgame]);
 	push @final4_actual, $actual_outcome[$currentgame];
 	$currentgame = $currentgame+1;
 }
 while ($currentgame < 62){
+	chomp($actual_outcome[$currentgame]);
 	push @championship_actual, $actual_outcome[$currentgame];
 	$currentgame = $currentgame+1;
 }
 while ($currentgame < 63){
+	chomp($actual_outcome[$currentgame]);
 	push @winner_actual, $actual_outcome[$currentgame];
 	$currentgame = $currentgame+1;
 }
@@ -103,12 +109,13 @@ close FH;
 #assign ratings for each team
 my %ratings = create_ratings();
 
-#leave commented unless you want to see all assigned ratings
-#my @allteams = keys %ratings;
-#for my $allteam (@allteams) {
-#	print $allteam . ":" . $ratings{$allteam} . "\n";
-#
-#}
+if ($debug == 1) {
+	my @allteams = keys %ratings;
+	for my $allteam (@allteams) {
+		print $allteam . ":" . $ratings{$allteam} . "\n";
+	}
+}
+
 
 #go through the bracket and simulate each game
 my $weights = "100,0,0,0,0,";
@@ -127,6 +134,85 @@ my @final4 = play_round(\@elite8,\%ratings,$weights);
 my @championship = play_round(\@final4,\%ratings,$weights);
 my @winner = play_round(\@championship,\%ratings,$weights);
 
+#compare this prediction to the actual result
+my $overallaccuracy = 0;
+my $roundof32accuracy = 0;
+my $sweet16accuracy = 0;
+my $elite8accuracy = 0;
+my $final4accuracy = 0;
+my $championshipaccuracy = 0;
+my $winneraccuracy = 0;
+
+
+my $comparing = 0;
+my $val;
+
+foreach $val (@roundof32){
+	if ($val eq $roundof32_actual[$comparing]) {
+		$overallaccuracy = $overallaccuracy + 1;
+		$roundof32accuracy = $roundof32accuracy + 1;
+	}
+	$comparing = $comparing + 1;
+}
+$roundof32accuracy = ((int($roundof32accuracy) / 32)*100);
+
+$comparing = 0;
+foreach $val (@sweet16){
+	if ($val eq $sweet16_actual[$comparing]) {
+		$overallaccuracy = $overallaccuracy + 1;
+		$sweet16accuracy = $sweet16accuracy + 1;
+	}
+	$comparing = $comparing + 1;
+}
+$sweet16accuracy = ((int($sweet16accuracy) / 16)*100);
+
+$comparing = 0;
+foreach $val (@elite8){
+	if ($val eq $elite8_actual[$comparing]) {
+		$overallaccuracy = $overallaccuracy + 1;
+		$elite8accuracy = $elite8accuracy + 1;
+	}
+	$comparing = $comparing + 1;
+}
+$elite8accuracy = ((int($elite8accuracy) / 8)*100);
+
+$comparing = 0;
+foreach $val (@final4){
+	if ($val eq $final4_actual[$comparing]) {
+		$overallaccuracy = $overallaccuracy + 1;
+		$final4accuracy = $final4accuracy + 1;
+	}
+	$comparing = $comparing + 1;
+}
+$final4accuracy = ((int($final4accuracy) / 4)*100);
+
+$comparing = 0;
+foreach $val (@championship){
+	if ($val eq $championship_actual[$comparing]) {
+		$overallaccuracy = $overallaccuracy + 1;
+		$championshipaccuracy = $championshipaccuracy + 1;
+	}
+	$comparing = $comparing + 1;
+}
+$championshipaccuracy = ((int($championshipaccuracy) / 4)*100);
+
+
+$comparing = 0;
+foreach $val (@winner){
+	if ($val eq $winner_actual[$comparing]) {
+		$overallaccuracy = $overallaccuracy + 1;
+		$winneraccuracy = $winneraccuracy + 1;
+	}
+	$comparing = $comparing + 1;
+}
+$winneraccuracy = ((int($winneraccuracy) / 4)*100);
+
+print "Overall Accuracy: " . $overallaccuracy . "%\n";
+print "Championship Accuracy: " . $championshipaccuracy . "%\n";
+print "Final 4 Accuracy: " . $final4accuracy . "%\n";
+print "Elite 8 Accuracy: " . $elite8accuracy . "%\n";
+print "Sweet 16 Accuracy: " . $sweet16accuracy . "%\n";
+print "Round of 32 Accuracy: " . $roundof32accuracy . "%\n";
 #return the result of a round
 #this will work when 'ratings' is a hash of team names / ratings
 #and 'teams' is an array of team names with an even number of results
@@ -217,7 +303,7 @@ sub play_game {
 	my $team2strength;
 	my $totalteams = scalar(keys %ratings);
 
-	print "Game: " . $team1 . " vs. " . $team2 . "\n";
+	#print "Game: " . $team1 . " vs. " . $team2 . "\n";
 	#print $team1 . " Ratings: " . $ratings{$team1} . "\n";
 	#print $team2 . " Ratings: " . $ratings{$team2} . "\n";
 	#print "Weights: " . $weights . "\n";
@@ -261,10 +347,10 @@ sub play_game {
 	#print $team2 . " Strength: " . $team2strength . "\n";
 
 	if ($team1strength > $team2strength){
-		print "Winner: " . $team1 . "\n";
+		#print "Winner: " . $team1 . "\n";
 		return $team1;
 	} else {
-		print "Winner: " . $team2 . "\n";
+		#print "Winner: " . $team2 . "\n";
 		return $team2;
 	}
 	
