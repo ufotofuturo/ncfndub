@@ -27,6 +27,9 @@ script loops like this
 	adjust the starting weights (see "weight pattern example" below) and continue looping
 
 
+theoretical improvements - once confident that play_game function using weights is behaving as intended, maybe add "fuzzyness":
+simulate each set of weights X number of times and roll the dice on particularly close matchups.
+
 
 
 
