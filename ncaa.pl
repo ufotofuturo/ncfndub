@@ -4,10 +4,8 @@
 use strict;
 #use warnings;
 
-my $total = 0;
-foreach (@ARGV){
-	print "Element: |$_|\n";
-}
+my $workingdir = $ARGV[0];
+my $season = $ARGV[1];
 
 #open schedule- this is a file containing the first 32 matchups
 #in a format like this:
@@ -15,7 +13,8 @@ foreach (@ARGV){
 #2:Wisconsin:VA Tech
 #3:Virginia:NC-Wilmgton
 # ...etc....
-open FH, '/Users/dabritson/ncfndub/1617/schedule.dat' or die $!;
+my $schedulelocation = $workingdir . $season . "/schedule.dat";
+open FH, $schedulelocation or die $!;
 my @bracket;
 
 #read the schedule into an array
@@ -38,6 +37,8 @@ my %ratings = create_ratings();
 #}
 
 #go through the bracket and simulate each game
+my $weights = "100,0,0,0,0,";
+
 my @roundof32;
 my @sweet16;
 my @elite8;
@@ -45,12 +46,12 @@ my @final4;
 my @championship;
 my @winner;
 
-my @roundof32 = play_round(\@bracket,\%ratings);
-my @sweet16 = play_round(\@roundof32,\%ratings);
-my @elite8 = play_round(\@sweet16,\%ratings);
-my @final4 = play_round(\@elite8,\%ratings);
-my @championship = play_round(\@final4,\%ratings);
-my @winner = play_round(\@championship,\%ratings);
+my @roundof32 = play_round(\@bracket,\%ratings,$weights);
+my @sweet16 = play_round(\@roundof32,\%ratings,$weights);
+my @elite8 = play_round(\@sweet16,\%ratings,$weights);
+my @final4 = play_round(\@elite8,\%ratings,$weights);
+my @championship = play_round(\@final4,\%ratings,$weights);
+my @winner = play_round(\@championship,\%ratings,$weights);
 
 #return the result of a round
 #this will work when 'ratings' is a hash of team names / ratings
@@ -60,17 +61,21 @@ sub play_round {
 	# body...	my @input = @{$_[0]};
 	my @teams= @{$_[0]};
 	my %ratings = %{$_[1]};
+	my $weights = $_[2];
 	my $numberofgames = scalar @teams;
 	my @result;
 	my $nextround = 0;
 	my $team1;
 	my $team2;
+	my $winner;
 
 	while ($nextround < $numberofgames){
 		$team1 = @teams[$nextround];
 		$team2 = @teams[$nextround+1];
-		print "Game: " . $team1 . " vs. " . $team2 . " ";
-		print "Winner: " ;
+		my $winner = play_game($team1,$team2,\%ratings,$weights);
+
+		die;
+
 		if ($ratings{$team1} < $ratings{$team2}){
 			print $team1 . "\n";
 			push @result, $team1;
@@ -83,9 +88,10 @@ sub play_round {
 	return @result;
 }
 
-#create an overall ranking of every team from the provided file using the provided weights
+#create an overall ranking of every team from the provided file
 sub create_ratings{
-	open teams, '/Users/dabritson/ncfndub/1617/teams.dat' or die $!;
+	my $teamfilelocation = $workingdir . $season . "/teams.dat";
+	open teams, $teamfilelocation or die $!;
 	my @teamlist;
 	my %ratings;
 	my $increment = 1;
@@ -95,17 +101,8 @@ sub create_ratings{
 	}
 	close teams;
 	#build five hashes with the rankings for each team
-	my %rpi;
-	my %defense;
-	my %offense;
-	my %floor;
-	my %margin;
-	stat_reader(\@teamlist);
-	#assign rankings and store them into a hash
-	foreach my $team (@teamlist){
-		$ratings{$team} = $increment;
-		$increment++;
-	}
+	my %ratings = stat_reader(\@teamlist);
+
 	return %ratings;
 }
 
@@ -114,11 +111,11 @@ sub stat_reader {
 	my @teams= @{$_[0]};
 	my %result;
 
-	%result = grab_rankings(\%result,'/Users/dabritson/ncfndub/1617/rpi.dat');
-	%result = grab_rankings(\%result,'/Users/dabritson/ncfndub/1617/defensiveefficiency.dat');
-	%result = grab_rankings(\%result,'/Users/dabritson/ncfndub/1617/offensiveefficiency.dat');
-	%result = grab_rankings(\%result,'/Users/dabritson/ncfndub/1617/floorpercentage.dat');
-	%result = grab_rankings(\%result,'/Users/dabritson/ncfndub/1617/scoringmargins.dat');
+	%result = grab_rankings(\%result,$workingdir . $season . '/rpi.dat');
+	%result = grab_rankings(\%result,$workingdir . $season . '/defensiveefficiency.dat');
+	%result = grab_rankings(\%result,$workingdir . $season . '/offensiveefficiency.dat');
+	%result = grab_rankings(\%result,$workingdir . $season . '/floorpercentage.dat');
+	%result = grab_rankings(\%result,$workingdir . $season . '/scoringmargins.dat');
 
 	#uncomment to view resulting hash values
 	#my @iter = keys %result;
@@ -126,7 +123,7 @@ sub stat_reader {
 	#	print "TEAM NAME: " . $team . " Hash Value: " . $result{$team} . "\n"; 
 	#}
 
-	die;
+	return %result;
 }
 
 sub grab_rankings {
@@ -144,3 +141,27 @@ sub grab_rankings {
 }
 
 #assess the output of a game given the teams, ratings, and weights
+#play_game(Arizona,Tennesee,\%ratings,$weights)
+sub play_game {
+	my $team1 = $_[0];
+	my $team2 = $_[1];
+	my %ratings = %{$_[2]};
+	my $weights = $_[3];
+	my $team1strength;
+	my $team2strength;
+	my $totalteams = scalar(keys %ratings);
+
+	print "Game: " . $team1 . " vs. " . $team2 . "\n";
+	print $team1 . " Ratings: " . $ratings{$team1} . "\n";
+	print $team2 . " Ratings: " . $ratings{$team2} . "\n";
+	print "Weights: " . $weights . "\n";
+
+	my @team1adjusted;
+	my @team2adjusted;
+
+
+
+
+	print "Winner: " . $team1;
+	return $team1;
+}
