@@ -6,6 +6,10 @@ use strict;
 
 my $workingdir = $ARGV[0];
 my $season = $ARGV[1];
+
+#defines location in the weights file to start doing sims
+#will help if sim is interrupted.
+my $startingline = $ARGV[2];
 my $debug = 0;
 
 #read the season's actual outcome into an array
@@ -122,111 +126,114 @@ my @allsims;
 push @allsims, "20,20,20,20,20,";
 push @allsims, "100,0,0,0,0,";
 push @allsims, "0,0,100,0,0,";
-
+my $progress = 1;
 
 foreach my $input (@allsims){
-	my @roundof32;
-	my @sweet16;
-	my @elite8;
-	my @final4;
-	my @championship;
-	my @winner;
-	my $weights = $input;
+	if ($progress >= $startingline) {
+		my @roundof32;
+		my @sweet16;
+		my @elite8;
+		my @final4;
+		my @championship;
+		my @winner;
+		my $weights = $input;
 
-	my @roundof32 = play_round(\@bracket,\%ratings,$weights);
-	my @sweet16 = play_round(\@roundof32,\%ratings,$weights);
-	my @elite8 = play_round(\@sweet16,\%ratings,$weights);
-	my @final4 = play_round(\@elite8,\%ratings,$weights);
-	my @championship = play_round(\@final4,\%ratings,$weights);
-	my @winner = play_round(\@championship,\%ratings,$weights);
+		my @roundof32 = play_round(\@bracket,\%ratings,$weights);
+		my @sweet16 = play_round(\@roundof32,\%ratings,$weights);
+		my @elite8 = play_round(\@sweet16,\%ratings,$weights);
+		my @final4 = play_round(\@elite8,\%ratings,$weights);
+		my @championship = play_round(\@final4,\%ratings,$weights);
+		my @winner = play_round(\@championship,\%ratings,$weights);
 
-	#compare this prediction to the actual result
-	my $overallaccuracy = 0;
-	my $roundof32accuracy = 0;
-	my $sweet16accuracy = 0;
-	my $elite8accuracy = 0;
-	my $final4accuracy = 0;
-	my $championshipaccuracy = 0;
-	my $winneraccuracy = 0;
+		#compare this prediction to the actual result
+		my $overallaccuracy = 0;
+		my $roundof32accuracy = 0;
+		my $sweet16accuracy = 0;
+		my $elite8accuracy = 0;
+		my $final4accuracy = 0;
+		my $championshipaccuracy = 0;
+		my $winneraccuracy = 0;
 
 
-	my $comparing = 0;
-	my $val;
+		my $comparing = 0;
+		my $val;
 
-	foreach $val (@roundof32){
-		if ($val eq $roundof32_actual[$comparing]) {
-			$overallaccuracy = $overallaccuracy + 1;
-			$roundof32accuracy = $roundof32accuracy + 1;
+		foreach $val (@roundof32){
+			if ($val eq $roundof32_actual[$comparing]) {
+				$overallaccuracy = $overallaccuracy + 1;
+				$roundof32accuracy = $roundof32accuracy + 1;
+			}
+			$comparing = $comparing + 1;
 		}
-		$comparing = $comparing + 1;
-	}
-	$roundof32accuracy = ((int($roundof32accuracy) / 32)*100);
+		$roundof32accuracy = ((int($roundof32accuracy) / 32)*100);
 
-	$comparing = 0;
-	foreach $val (@sweet16){
-		if ($val eq $sweet16_actual[$comparing]) {
-			$overallaccuracy = $overallaccuracy + 1;
-			$sweet16accuracy = $sweet16accuracy + 1;
+		$comparing = 0;
+		foreach $val (@sweet16){
+			if ($val eq $sweet16_actual[$comparing]) {
+				$overallaccuracy = $overallaccuracy + 1;
+				$sweet16accuracy = $sweet16accuracy + 1;
+			}
+			$comparing = $comparing + 1;
 		}
-		$comparing = $comparing + 1;
-	}
-	$sweet16accuracy = ((int($sweet16accuracy) / 16)*100);
+		$sweet16accuracy = ((int($sweet16accuracy) / 16)*100);
 
-	$comparing = 0;
-	foreach $val (@elite8){
-		if ($val eq $elite8_actual[$comparing]) {
-			$overallaccuracy = $overallaccuracy + 1;
-			$elite8accuracy = $elite8accuracy + 1;
+		$comparing = 0;
+		foreach $val (@elite8){
+			if ($val eq $elite8_actual[$comparing]) {
+				$overallaccuracy = $overallaccuracy + 1;
+				$elite8accuracy = $elite8accuracy + 1;
+			}
+			$comparing = $comparing + 1;
 		}
-		$comparing = $comparing + 1;
-	}
-	$elite8accuracy = ((int($elite8accuracy) / 8)*100);
+		$elite8accuracy = ((int($elite8accuracy) / 8)*100);
 
-	$comparing = 0;
-	foreach $val (@final4){
-		if ($val eq $final4_actual[$comparing]) {
-			$overallaccuracy = $overallaccuracy + 1;
-			$final4accuracy = $final4accuracy + 1;
+		$comparing = 0;
+		foreach $val (@final4){
+			if ($val eq $final4_actual[$comparing]) {
+				$overallaccuracy = $overallaccuracy + 1;
+				$final4accuracy = $final4accuracy + 1;
+			}
+			$comparing = $comparing + 1;
 		}
-		$comparing = $comparing + 1;
-	}
-	$final4accuracy = ((int($final4accuracy) / 4)*100);
+		$final4accuracy = ((int($final4accuracy) / 4)*100);
 
-	$comparing = 0;
-	foreach $val (@championship){
-		if ($val eq $championship_actual[$comparing]) {
-			$overallaccuracy = $overallaccuracy + 1;
-			$championshipaccuracy = $championshipaccuracy + 1;
+		$comparing = 0;
+		foreach $val (@championship){
+			if ($val eq $championship_actual[$comparing]) {
+				$overallaccuracy = $overallaccuracy + 1;
+				$championshipaccuracy = $championshipaccuracy + 1;
+			}
+			$comparing = $comparing + 1;
 		}
-		$comparing = $comparing + 1;
-	}
-	$championshipaccuracy = ((int($championshipaccuracy) / 4)*100);
+		$championshipaccuracy = ((int($championshipaccuracy) / 4)*100);
 
 
-	$comparing = 0;
-	foreach $val (@winner){
-		if ($val eq $winner_actual[$comparing]) {
-			$overallaccuracy = $overallaccuracy + 1;
-			$winneraccuracy = $winneraccuracy + 1;
+		$comparing = 0;
+		foreach $val (@winner){
+			if ($val eq $winner_actual[$comparing]) {
+				$overallaccuracy = $overallaccuracy + 1;
+				$winneraccuracy = $winneraccuracy + 1;
+			}
+			$comparing = $comparing + 1;
 		}
-		$comparing = $comparing + 1;
-	}
-	$winneraccuracy = ((int($winneraccuracy) / 4)*100);
+		$winneraccuracy = ((int($winneraccuracy) / 4)*100);
 
 
-	#print "Overall Accuracy: " . $overallaccuracy . "%\n";
-	#print "Winner Accuracy: " . $winneraccuracy . "%\n";
-	#print "Championship Accuracy: " . $championshipaccuracy . "%\n";
-	#print "Final 4 Accuracy: " . $final4accuracy . "%\n";
-	#print "Elite 8 Accuracy: " . $elite8accuracy . "%\n";
-	#print "Sweet 16 Accuracy: " . $sweet16accuracy . "%\n";
-	#print "Round of 32 Accuracy: " . $roundof32accuracy . "%\n";
+		#print "Overall Accuracy: " . $overallaccuracy . "%\n";
+		#print "Winner Accuracy: " . $winneraccuracy . "%\n";
+		#print "Championship Accuracy: " . $championshipaccuracy . "%\n";
+		#print "Final 4 Accuracy: " . $final4accuracy . "%\n";
+		#print "Elite 8 Accuracy: " . $elite8accuracy . "%\n";
+		#print "Sweet 16 Accuracy: " . $sweet16accuracy . "%\n";
+		#print "Round of 32 Accuracy: " . $roundof32accuracy . "%\n";
 
-	my $outputfilelocation = $workingdir . $season . '/predictions.txt';
-	open (my $outhandle, '>>', $outputfilelocation) or die "Could not open file '$$outputfilelocation' $!";
-	print $outhandle $weights . ":" . $roundof32accuracy . ":" . $sweet16accuracy . ":" . $elite8accuracy . ":" . $final4accuracy . ":" . $championshipaccuracy . ":" . $winneraccuracy . ":" . $overallaccuracy . "\n"; 
-	close $outhandle;
-
+		my $outputfilelocation = $workingdir . $season . '/predictions.txt';
+		open (my $outhandle, '>>', $outputfilelocation) or die "Could not open file '$$outputfilelocation' $!";
+		print $outhandle $weights . ":" . $roundof32accuracy . ":" . $sweet16accuracy . ":" . $elite8accuracy . ":" . $final4accuracy . ":" . $championshipaccuracy . ":" . $winneraccuracy . ":" . $overallaccuracy . "\n"; 
+		close $outhandle;
+		} else {
+			$progress = $progress + 1;
+		}
 }
 
 #return the result of a round
