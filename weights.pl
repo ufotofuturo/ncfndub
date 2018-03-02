@@ -43,7 +43,7 @@ sub output_weights{
 		}
 		#output array to file if sum = 100
 		if ($total == 100){
-			my $filename = '/Users/dabritson/ncaa/weights.dat';
+			my $filename = 'workingdir/weights.dat';
 			open(my $fh, ">>", $filename) or die "Could not open file '$filename' $!";
 			for (@input) {
 				print $fh $_ . ",";
