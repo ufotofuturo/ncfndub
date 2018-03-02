@@ -15,7 +15,7 @@ foreach (@ARGV){
 #2:Wisconsin:VA Tech
 #3:Virginia:NC-Wilmgton
 # ...etc....
-open FH, '/Users/dabritson/ncaa/schedule.dat' or die $!;
+open FH, '/Users/dabritson/ncfndub/1617/schedule.dat' or die $!;
 my @bracket;
 
 #read the schedule into an array
@@ -25,6 +25,7 @@ while (<FH>){
 	push @bracket, $temp[1];
 	push @bracket, $temp[2];
 }
+close FH;
 
 #assign ratings for each team
 my %ratings = create_ratings();
@@ -84,14 +85,22 @@ sub play_round {
 
 #create an overall ranking of every team from the provided file using the provided weights
 sub create_ratings{
-	open teams, '/Users/dabritson/ncaa/16_17_teams.dat' or die $!;
+	open teams, '/Users/dabritson/ncfndub/1617/teams.dat' or die $!;
 	my @teamlist;
 	my %ratings;
-	my $increment;
+	my $increment = 1;
 	#read the teams into an array
 	while (<teams>){
 		push @teamlist,$_;
 	}
+	close teams;
+	#build five hashes with the rankings for each team
+	my %rpi;
+	my %defense;
+	my %offense;
+	my %floor;
+	my %margin;
+	stat_reader(\@teamlist);
 	#assign rankings and store them into a hash
 	foreach my $team (@teamlist){
 		$ratings{$team} = $increment;
@@ -99,3 +108,39 @@ sub create_ratings{
 	}
 	return %ratings;
 }
+
+#read stats and return a hash with team names / rankings
+sub stat_reader {
+	my @teams= @{$_[0]};
+	my %result;
+
+	%result = grab_rankings(\%result,'/Users/dabritson/ncfndub/1617/rpi.dat');
+	%result = grab_rankings(\%result,'/Users/dabritson/ncfndub/1617/defensiveefficiency.dat');
+	%result = grab_rankings(\%result,'/Users/dabritson/ncfndub/1617/offensiveefficiency.dat');
+	%result = grab_rankings(\%result,'/Users/dabritson/ncfndub/1617/floorpercentage.dat');
+	%result = grab_rankings(\%result,'/Users/dabritson/ncfndub/1617/scoringmargins.dat');
+
+	#uncomment to view resulting hash values
+	#my @iter = keys %result;
+	#foreach my $team (@iter){
+	#	print "TEAM NAME: " . $team . " Hash Value: " . $result{$team} . "\n"; 
+	#}
+
+	die;
+}
+
+sub grab_rankings {
+	my %result= %{$_[0]};
+	my $file = $_[1];
+
+	open handle, $file or die $!;
+	my @temp;
+	while (<handle>){
+		@temp = split /,/, $_;	
+		$result{$temp[1]} = $result{$temp[1]} . $temp[0] . ":";
+	}
+	close handle;
+	return %result;
+}
+
+#assess the output of a game given the teams, ratings, and weights
