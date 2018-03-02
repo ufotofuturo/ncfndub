@@ -1,0 +1,16 @@
+format notes
+
+rpi:
+rank,team,rating,hi,low,last
+
+defensiveefficiency:
+rank,team,season,last3,last1,home,away,lastseason
+
+offensiveefficiency:
+rank,team,season,last3,last1,home,away,lastseason
+
+scoringmargin:
+rank,team,season,last3,last1,home,away,lastseason
+
+floorpercentage:
+rank,team,season,last3,last1,home,away,lastseason

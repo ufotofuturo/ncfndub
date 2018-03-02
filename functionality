@@ -1,0 +1,34 @@
+functionality
+
+ncaa.pl <season - 16_17> <weights.dat> <teams.dat> <16_17_result.dat (optional)> <output.dat (optional)>
+
+COMPLETED - barest functionality - weights.pl - generate list of weights
+
+basic functionality - take a team name as input and output the stats from the data files
+
+partial functionality - use stats to approximate the result of a game between two teams in input, adjusted for weights
+
+full functionality - simulate the entire tournament with all possible weights and output the weights (ranked) that most accurately predict the tournament result.
+
+
+how weights work
+total weights of all (5?) stat collections must be 100%
+
+1.0 = this ranking and nothing else is considered when determining the output
+0.0 = this ranking is completely ignored when determining the output
+
+
+script loops like this
+
+(while possible weights remain)
+	simulate the tournament
+	compare simulated result to actual result
+	give a score (accuracy %) to the simulated result and add a new line to output.dat
+	adjust the starting weights (see "weight pattern example" below) and continue looping
+
+
+
+
+
+
+
