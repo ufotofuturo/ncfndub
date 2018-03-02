@@ -6,6 +6,80 @@ use strict;
 
 my $workingdir = $ARGV[0];
 my $season = $ARGV[1];
+my $debug = 1;
+
+#read the season's actual outcome into an array
+my @actual_outcome = actual_outcome();
+#debug - show full outcome
+if ($debug == 1){
+	my $gamenumber = 1;
+	foreach my $game (@actual_outcome){
+		print "Game " . $gamenumber . " winner: " . $game . "\n";
+		$gamenumber = $gamenumber + 1;
+	}
+} 
+
+#split the season's actual outcome into discrete arrays
+my @roundof32_actual;
+my @sweet16_actual;
+my @elite8_actual;
+my @final4_actual;
+my @championship_actual;
+my @winner_actual;
+
+my $currentgame = 0;
+while ($currentgame < 32){
+	push @roundof32_actual, $actual_outcome[$currentgame];
+	$currentgame = $currentgame+1;
+}
+while ($currentgame < 48){
+	push @sweet16_actual, $actual_outcome[$currentgame];
+	$currentgame = $currentgame+1;
+}
+while ($currentgame < 56){
+	push @elite8_actual, $actual_outcome[$currentgame];
+	$currentgame = $currentgame+1;
+}
+while ($currentgame < 60){
+	push @final4_actual, $actual_outcome[$currentgame];
+	$currentgame = $currentgame+1;
+}
+while ($currentgame < 62){
+	push @championship_actual, $actual_outcome[$currentgame];
+	$currentgame = $currentgame+1;
+}
+while ($currentgame < 63){
+	push @winner_actual, $actual_outcome[$currentgame];
+	$currentgame = $currentgame+1;
+}
+
+if ($debug == 1) {
+	my $val;
+	print "Round of 32: " , "\n";
+	foreach $val (@roundof32_actual){
+		print $val;
+	}
+	print "Sweet 16: " , "\n";
+	foreach $val (@sweet16_actual){
+		print $val;
+	}
+	print "Elite 8: " , "\n";
+	foreach $val (@elite8_actual){
+		print $val;
+	}
+	print "Final 4: " , "\n";
+	foreach $val (@final4_actual){
+		print $val;
+	}
+	print "Championship Game: " , "\n";
+	foreach $val (@championship_actual){
+		print $val;
+	}
+	print "Winner: " , "\n";
+	foreach $val (@winner_actual){
+		print $val;
+	}
+}
 
 #open schedule- this is a file containing the first 32 matchups
 #in a format like this:
@@ -150,15 +224,13 @@ sub play_game {
 
 	my @team1adjusted;
 	my @team2adjusted;
+	my $currentweight = 0;
+	my $rank1;
+	my $rank2;
 
 	my @weightsarray = split /,/, $weights;
 	my @rawteam1 = split /:/, $ratings{$team1};
 	my @rawteam2 = split /:/, $ratings{$team2};
-
-	my $currentweight = 0;
-
-	my $rank1;
-	my $rank2;
 
 	foreach my $column (@weightsarray){
 		#pull team's rank for current stat compared to rest of field
@@ -197,3 +269,19 @@ sub play_game {
 	}
 	
 }
+
+#reads the season's actual outcome to an array
+sub actual_outcome {
+	my $outcomelocation = $workingdir . $season . "/result.dat";
+	open FH, $outcomelocation or die $!;
+
+	#read the outcome into an array
+	my @outcome;
+	while (<FH>){
+		@temp = split /:/, $_;
+		push @outcome, $temp[3];
+	}
+	close FH;
+	return @outcome;
+}
+
