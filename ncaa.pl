@@ -11,6 +11,13 @@ my $season = $ARGV[1];
 #defines location in the weights file to start doing sims
 #will help if sim is interrupted.
 my $startingline = $ARGV[2];
+
+#fuzz multiplier defines how many times to run each weight
+#fuzz factor is a range within which the results of the game will use dice rolls
+
+my $fuzzfactor = .03;
+my $fuzzmultiplier = 2;
+
 my $debug = 0;
 
 #read the season's actual outcome into an array
@@ -129,113 +136,120 @@ if ($debug == 1) {
 #push @allsims, "0,0,100,0,0,";
 
 my $progress = 1;
-my $weightfile = $workingdir . "/weights.dat";
+my $looper;
+my $weightfile = $workingdir . $season . "/weights.dat";
 open FILE, $weightfile or die $!;
 
 while(<FILE>) {
+	$looper = 0;
 	if ($progress >= $startingline) {
-		my @roundof32;
-		my @sweet16;
-		my @elite8;
-		my @final4;
-		my @championship;
-		my @winner;
-		chomp $_;
-		my $weights = $_;
+		while ($looper < $fuzzmultiplier){
+			my @roundof32;
+			my @sweet16;
+			my @elite8;
+			my @final4;
+			my @championship;
+			my @winner;
+			chomp $_;
+			my $weights = $_;
+			#debug - output bracketed weighted team ratings here
+			my %bracket_ratings = tourney_weights($weights,\%ratings,\@bracket);
 
-		my @roundof32 = play_round(\@bracket,\%ratings,$weights);
-		my @sweet16 = play_round(\@roundof32,\%ratings,$weights);
-		my @elite8 = play_round(\@sweet16,\%ratings,$weights);
-		my @final4 = play_round(\@elite8,\%ratings,$weights);
-		my @championship = play_round(\@final4,\%ratings,$weights);
-		my @winner = play_round(\@championship,\%ratings,$weights);
+			my @roundof32 = play_round(\@bracket,\%bracket_ratings,$fuzzfactor);
+			my @sweet16 = play_round(\@roundof32,\%bracket_ratings,$fuzzfactor);
+			my @elite8 = play_round(\@sweet16,\%bracket_ratings,$fuzzfactor);
+			my @final4 = play_round(\@elite8,\%bracket_ratings,$fuzzfactor);
+			my @championship = play_round(\@final4,\%bracket_ratings,$fuzzfactor);
+			my @winner = play_round(\@championship,\%bracket_ratings,$fuzzfactor);
 
-		#compare this prediction to the actual result
-		my $overallaccuracy = 0;
-		my $roundof32accuracy = 0;
-		my $sweet16accuracy = 0;
-		my $elite8accuracy = 0;
-		my $final4accuracy = 0;
-		my $championshipaccuracy = 0;
-		my $winneraccuracy = 0;
+			#compare this prediction to the actual result
+			my $overallaccuracy = 0;
+			my $roundof32accuracy = 0;
+			my $sweet16accuracy = 0;
+			my $elite8accuracy = 0;
+			my $final4accuracy = 0;
+			my $championshipaccuracy = 0;
+			my $winneraccuracy = 0;
 
 
-		my $comparing = 0;
-		my $val;
+			my $comparing = 0;
+			my $val;
 
-		foreach $val (@roundof32){
-			if ($val eq $roundof32_actual[$comparing]) {
-				$overallaccuracy = $overallaccuracy + 1;
-				$roundof32accuracy = $roundof32accuracy + 1;
+			foreach $val (@roundof32){
+				if ($val eq $roundof32_actual[$comparing]) {
+					$overallaccuracy = $overallaccuracy + 1;
+					$roundof32accuracy = $roundof32accuracy + 1;
+				}
+				$comparing = $comparing + 1;
 			}
-			$comparing = $comparing + 1;
-		}
-		$roundof32accuracy = ((int($roundof32accuracy) / 32)*100);
+			$roundof32accuracy = ((int($roundof32accuracy) / 32)*100);
 
-		$comparing = 0;
-		foreach $val (@sweet16){
-			if ($val eq $sweet16_actual[$comparing]) {
-				$overallaccuracy = $overallaccuracy + 1;
-				$sweet16accuracy = $sweet16accuracy + 1;
+			$comparing = 0;
+			foreach $val (@sweet16){
+				if ($val eq $sweet16_actual[$comparing]) {
+					$overallaccuracy = $overallaccuracy + 1;
+					$sweet16accuracy = $sweet16accuracy + 1;
+				}
+				$comparing = $comparing + 1;
 			}
-			$comparing = $comparing + 1;
-		}
-		$sweet16accuracy = ((int($sweet16accuracy) / 16)*100);
+			$sweet16accuracy = ((int($sweet16accuracy) / 16)*100);
 
-		$comparing = 0;
-		foreach $val (@elite8){
-			if ($val eq $elite8_actual[$comparing]) {
-				$overallaccuracy = $overallaccuracy + 1;
-				$elite8accuracy = $elite8accuracy + 1;
+			$comparing = 0;
+			foreach $val (@elite8){
+				if ($val eq $elite8_actual[$comparing]) {
+					$overallaccuracy = $overallaccuracy + 1;
+					$elite8accuracy = $elite8accuracy + 1;
+				}
+				$comparing = $comparing + 1;
 			}
-			$comparing = $comparing + 1;
-		}
-		$elite8accuracy = ((int($elite8accuracy) / 8)*100);
+			$elite8accuracy = ((int($elite8accuracy) / 8)*100);
 
-		$comparing = 0;
-		foreach $val (@final4){
-			if ($val eq $final4_actual[$comparing]) {
-				$overallaccuracy = $overallaccuracy + 1;
-				$final4accuracy = $final4accuracy + 1;
+			$comparing = 0;
+			foreach $val (@final4){
+				if ($val eq $final4_actual[$comparing]) {
+					$overallaccuracy = $overallaccuracy + 1;
+					$final4accuracy = $final4accuracy + 1;
+				}
+				$comparing = $comparing + 1;
 			}
-			$comparing = $comparing + 1;
-		}
-		$final4accuracy = ((int($final4accuracy) / 4)*100);
+			$final4accuracy = ((int($final4accuracy) / 4)*100);
 
-		$comparing = 0;
-		foreach $val (@championship){
-			if ($val eq $championship_actual[$comparing]) {
-				$overallaccuracy = $overallaccuracy + 1;
-				$championshipaccuracy = $championshipaccuracy + 1;
+			$comparing = 0;
+			foreach $val (@championship){
+				if ($val eq $championship_actual[$comparing]) {
+					$overallaccuracy = $overallaccuracy + 1;
+					$championshipaccuracy = $championshipaccuracy + 1;
+				}
+				$comparing = $comparing + 1;
 			}
-			$comparing = $comparing + 1;
-		}
-		$championshipaccuracy = ((int($championshipaccuracy) / 2)*100);
+			$championshipaccuracy = ((int($championshipaccuracy) / 2)*100);
 
 
-		$comparing = 0;
-		foreach $val (@winner){
-			if ($val eq $winner_actual[$comparing]) {
-				$overallaccuracy = $overallaccuracy + 1;
-				$winneraccuracy = $winneraccuracy + 1;
+			$comparing = 0;
+			foreach $val (@winner){
+				if ($val eq $winner_actual[$comparing]) {
+					$overallaccuracy = $overallaccuracy + 1;
+					$winneraccuracy = $winneraccuracy + 1;
+				}
+				$comparing = $comparing + 1;
 			}
-			$comparing = $comparing + 1;
+			$winneraccuracy = ((int($winneraccuracy) / 1)*100);
+
+
+			#print "Overall Accuracy: " . $overallaccuracy . "%\n";
+			#print "Winner Accuracy: " . $winneraccuracy . "%\n";
+			#print "Championship Accuracy: " . $championshipaccuracy . "%\n";
+			#print "Final 4 Accuracy: " . $final4accuracy . "%\n";
+			#print "Elite 8 Accuracy: " . $elite8accuracy . "%\n";
+			#print "Sweet 16 Accuracy: " . $sweet16accuracy . "%\n";
+			#print "Round of 32 Accuracy: " . $roundof32accuracy . "%\n";
+
+			my $outputfilelocation = $workingdir . $season . '/predictions.txt';
+			open (my $outhandle, '>>', $outputfilelocation) or die "Could not open file '$$outputfilelocation' $!";
+			print $outhandle $weights . ":" . $roundof32accuracy . ":" . $sweet16accuracy . ":" . $elite8accuracy . ":" . $final4accuracy . ":" . $championshipaccuracy . ":" . $winneraccuracy . ":" . $overallaccuracy . "\n"; 
+			close $outhandle;
+			$looper = $looper + 1;
 		}
-		$winneraccuracy = ((int($winneraccuracy) / 1)*100);
-
-
-		#print "Overall Accuracy: " . $overallaccuracy . "%\n";
-		#print "Winner Accuracy: " . $winneraccuracy . "%\n";
-		#print "Championship Accuracy: " . $championshipaccuracy . "%\n";
-		#print "Final 4 Accuracy: " . $final4accuracy . "%\n";
-		#print "Elite 8 Accuracy: " . $elite8accuracy . "%\n";
-		#print "Sweet 16 Accuracy: " . $sweet16accuracy . "%\n";
-		#print "Round of 32 Accuracy: " . $roundof32accuracy . "%\n";
-
-		my $outputfilelocation = $workingdir . $season . '/predictions.txt';
-		open (my $outhandle, '>>', $outputfilelocation) or die "Could not open file '$$outputfilelocation' $!";
-		print $outhandle $weights . ":" . $roundof32accuracy . ":" . $sweet16accuracy . ":" . $elite8accuracy . ":" . $final4accuracy . ":" . $championshipaccuracy . ":" . $winneraccuracy . ":" . $overallaccuracy . "\n"; 
-		close $outhandle;
 	} else {
 		$progress = $progress + 1;
 	}
@@ -244,12 +258,12 @@ while(<FILE>) {
 #return the result of a round
 #this will work when 'ratings' is a hash of team names / ratings
 #and 'teams' is an array of team names with an even number of results
-#play_round(teams,ratings)
+#play_round(teams,ratings,fuzz)
 sub play_round {
 	# body...	my @input = @{$_[0]};
 	my @teams = @{$_[0]};
 	my %ratings = %{$_[1]};
-	my $weights = $_[2];
+	my $fuzz = $_[2];
 	my $numberofgames = scalar @teams;
 	my @result;
 	my $nextround = 0;
@@ -260,7 +274,7 @@ sub play_round {
 	while ($nextround < $numberofgames){
 		$team1 = @teams[$nextround];
 		$team2 = @teams[$nextround+1];
-		my $winner = play_game($team1,$team2,\%ratings,$weights);
+		my $winner = play_game($team1,$team2,\%ratings,$fuzz);
 		push @result, $winner;
 		$nextround = $nextround + 2;
 	}
@@ -326,62 +340,84 @@ sub play_game {
 	my $team1 = $_[0];
 	my $team2 = $_[1];
 	my %ratings = %{$_[2]};
-	my $weights = $_[3];
-	my $team1strength;
-	my $team2strength;
-	my $totalteams = scalar(keys %ratings);
+	my $fuzz = $_[3];
 
-	#print "Game: " . $team1 . " vs. " . $team2 . "\n";
-	#print $team1 . " Ratings: " . $ratings{$team1} . "\n";
-	#print $team2 . " Ratings: " . $ratings{$team2} . "\n";
-	#print "Weights: " . $weights . "\n";
+	#print $team1 . " versus " . $team2 . "\n";
+	#print $team1 . " rating : " . $ratings{$team1} . "\n";
+	#print $team2 . " rating : " . $ratings{$team2} . "\n";
 
-	my @team1adjusted;
-	my @team2adjusted;
-	my $currentweight = 0;
-	my $rank1;
-	my $rank2;
+	#account for fuzziness here
+	#if absolute value of difference between team ratings
+	#is lower than the fuzz factor, just roll a dice instead of 
+	#checking ratings
 
-	my @weightsarray = split /,/, $weights;
-	my @rawteam1 = split /:/, $ratings{$team1};
-	my @rawteam2 = split /:/, $ratings{$team2};
-
-	foreach my $column (@weightsarray){
-		#pull team's rank for current stat compared to rest of field
-		$rank1 = $rawteam1[$currentweight];
-		$rank2 = $rawteam2[$currentweight];
-
-		#adjust this rank to a percentage - 1st place = 100%
-		$rank1 = (($totalteams + 1) - $rank1)/$totalteams;
-		$rank2 = (($totalteams + 1) - $rank2)/$totalteams;
-
-		#make adjustments with weight to find adjusted percent strength of each metric
-		push @team1adjusted, ($rank1 * (@weightsarray[$currentweight] / 100));
-		push @team2adjusted, ($rank2 * (@weightsarray[$currentweight] / 100));
-
-		$currentweight = $currentweight + 1;
-		#push @team1adjusted, ;
-		#push @team2adjusted, ;
-	}
-	#combine percentage strengths to find final strength for each time
-	foreach my $finalval1 (@team1adjusted){
-		$team1strength = $team1strength + $finalval1;
-	}
-	foreach my $finalval2 (@team2adjusted){
-		$team2strength = $team2strength + $finalval2;
-	}
-
-	#print $team1 . " Strength: " . $team1strength . "\n";
-	#print $team2 . " Strength: " . $team2strength . "\n";
-
-	if ($team1strength > $team2strength){
-		#print "Winner: " . $team1 . "\n";
-		return $team1;
+	if (abs($ratings{$team1} - $ratings{$team2}) < $fuzz){
+		if ($ratings{$team1} > $ratings{$team2}){
+			#print "Winner: " . $team1 . "\n";
+			return $team1;
+		} else {
+			#print "Winner: " . $team2 . "\n";
+			return $team2;
+		}
 	} else {
-		#print "Winner: " . $team2 . "\n";
-		return $team2;
+		if ($ratings{$team1} > $ratings{$team2}){
+			#print "Winner: " . $team1 . "\n";
+			return $team1;
+		} else {
+			#print "Winner: " . $team2 . "\n";
+			return $team2;
+		}
 	}
+
+
 	
+}
+
+#returns a hash of the weighted team ratings for the tournament being played
+#tourney_weights (@weights,%ratings,@teams)
+sub tourney_weights {
+	my $weights = $_[0];
+	my %ratings = %{$_[1]};
+	my @teams = @{$_[2]};
+
+	my $teamstrength;
+	my $totalteams = scalar(keys %ratings);
+	my @teamrankadjusted;
+	my $currentweight;
+	my $rank;
+	my %results;
+	my @rawteam;
+	my @weightsarray = split /,/, $weights;
+
+
+	foreach my $team (@teams){
+		$currentweight = 0;
+		$teamstrength = 0;
+		@teamrankadjusted = ();
+		#print "Team: " . $team . ":";
+		@rawteam = split /:/, $ratings{$team};
+
+		foreach my $column (@weightsarray){
+			#pull team's rank for current stat compared to rest of field
+			$rank = $rawteam[$currentweight];
+
+			#adjust this rank to a percentage - 1st place = 100%
+			$rank = (($totalteams + 1) - $rank)/$totalteams;
+
+			#make adjustments with weight to find adjusted percent strength of each metric
+			push @teamrankadjusted, ($rank * (@weightsarray[$currentweight] / 100));
+
+			$currentweight = $currentweight + 1;
+		}
+		#combine percentage strengths to find final strength for each time
+		foreach my $finalval1 (@teamrankadjusted){
+			$teamstrength = $teamstrength + $finalval1;
+		}
+		#print $teamstrength . "\n";
+		$results{$team} = $teamstrength;
+	}
+	return %results;
+
 }
 
 #reads the season's actual outcome to an array
