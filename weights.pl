@@ -8,11 +8,14 @@ my @weights = (0, 0, 0, 0, 0);
 my $position = 0;
 my $range = 100;
 
+my $workingdir = $ARGV[0];
+my $season = $ARGV[2];
+
 my @values;
 my $current = 100;
 while ($current >= 0){
 	push @values,$current;
-	$current = $current - 1;
+	$current = $current - 5;
 }
 
 output_weights(\@weights,$position,\@values);
@@ -43,7 +46,7 @@ sub output_weights{
 		}
 		#output array to file if sum = 100
 		if ($total == 100){
-			my $filename = 'workingdir/weights.dat';
+			my $filename = $workingdir . $season . '/weights2.dat';
 			open(my $fh, ">>", $filename) or die "Could not open file '$filename' $!";
 			for (@input) {
 				print $fh $_ . ",";

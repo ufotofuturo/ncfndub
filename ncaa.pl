@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 #ncaa.pl
-
+#example run : 
+# perl ncaa.pl "/Users/location/ncfndub/" 1617 1
 use strict;
 #use warnings;
 
@@ -93,9 +94,9 @@ if ($debug == 1) {
 
 #open schedule- this is a file containing the first 32 matchups
 #in a format like this:
-#1:Villanova:Mt St Marys
-#2:Wisconsin:VA Tech
-#3:Virginia:NC-Wilmgton
+#1:Villanova:Mt St Marys:
+#2:Wisconsin:VA Tech:
+#3:Virginia:NC-Wilmgton:
 # ...etc....
 my $schedulelocation = $workingdir . $season . "/schedule.dat";
 open FH, $schedulelocation or die $!;
@@ -122,13 +123,16 @@ if ($debug == 1) {
 
 
 #go through the bracket and simulate each game
-my @allsims;
-push @allsims, "20,20,20,20,20,";
-push @allsims, "100,0,0,0,0,";
-push @allsims, "0,0,100,0,0,";
-my $progress = 1;
+#my @allsims;
+#push @allsims, "20,20,20,20,20,";
+#push @allsims, "100,0,0,0,0,";
+#push @allsims, "0,0,100,0,0,";
 
-foreach my $input (@allsims){
+my $progress = 1;
+my $weightfile = $workingdir . "/weights.dat";
+open FILE, $weightfile or die $!;
+
+while(<FILE>) {
 	if ($progress >= $startingline) {
 		my @roundof32;
 		my @sweet16;
@@ -136,7 +140,8 @@ foreach my $input (@allsims){
 		my @final4;
 		my @championship;
 		my @winner;
-		my $weights = $input;
+		chomp $_;
+		my $weights = $_;
 
 		my @roundof32 = play_round(\@bracket,\%ratings,$weights);
 		my @sweet16 = play_round(\@roundof32,\%ratings,$weights);
@@ -205,7 +210,7 @@ foreach my $input (@allsims){
 			}
 			$comparing = $comparing + 1;
 		}
-		$championshipaccuracy = ((int($championshipaccuracy) / 4)*100);
+		$championshipaccuracy = ((int($championshipaccuracy) / 2)*100);
 
 
 		$comparing = 0;
@@ -216,7 +221,7 @@ foreach my $input (@allsims){
 			}
 			$comparing = $comparing + 1;
 		}
-		$winneraccuracy = ((int($winneraccuracy) / 4)*100);
+		$winneraccuracy = ((int($winneraccuracy) / 1)*100);
 
 
 		#print "Overall Accuracy: " . $overallaccuracy . "%\n";
@@ -231,9 +236,9 @@ foreach my $input (@allsims){
 		open (my $outhandle, '>>', $outputfilelocation) or die "Could not open file '$$outputfilelocation' $!";
 		print $outhandle $weights . ":" . $roundof32accuracy . ":" . $sweet16accuracy . ":" . $elite8accuracy . ":" . $final4accuracy . ":" . $championshipaccuracy . ":" . $winneraccuracy . ":" . $overallaccuracy . "\n"; 
 		close $outhandle;
-		} else {
-			$progress = $progress + 1;
-		}
+	} else {
+		$progress = $progress + 1;
+	}
 }
 
 #return the result of a round
@@ -242,7 +247,7 @@ foreach my $input (@allsims){
 #play_round(teams,ratings)
 sub play_round {
 	# body...	my @input = @{$_[0]};
-	my @teams= @{$_[0]};
+	my @teams = @{$_[0]};
 	my %ratings = %{$_[1]};
 	my $weights = $_[2];
 	my $numberofgames = scalar @teams;
@@ -393,4 +398,3 @@ sub actual_outcome {
 	close FH;
 	return @outcome;
 }
-
